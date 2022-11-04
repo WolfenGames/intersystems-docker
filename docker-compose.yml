@@ -11,14 +11,20 @@ services:
       - ./import/ensemble:/home/import:z
       - ./export/ensemble:/home/export:z
       - ./database/ensemble:/opt/database:z
-  # iris:
-  #   container_name: ensemble
-  #   image: iris-dxc:latest
-  #   ports:
-  #     - 11972:1972
-  #     - 57773:57772
-  #   volumes:
-  #     - ./local-storage/iris:/home/repos:z
-  #     - ./import/iris:/home/import:z
-  #     - ./export/iris:/home/export:z
-  #     - ./database/iris:/database:z
+  my-iris:
+    container_name: iris
+    image: containers.intersystems.com/intersystems/iris:2022.1.0.209.0
+    ports:
+      - 1973:1972
+      - 57773:52773
+    command: --check-caps false --key /home/key/iris.key
+    volumes:
+      - ./local-storage/iris:/home/repos:z
+      - ./import/iris:/home/import:z
+      - ./export/iris:/home/export:z
+      - ./iris/iris.key:/home/key/iris.key:z
+      - ./database/iris:/opt/database:z
+      - irisdata:/usr/irissys/mgr/
+
+volumes:
+  irisdata:

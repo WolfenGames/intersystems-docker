@@ -18,8 +18,11 @@ launch:
 
 .Phony: fixperms
 fixperms:
+ifeq ($(BUILD_ENV), ensemble)
 	@docker exec -it ${BUILD_ENV} chown -R cacheusr:cacheusr /opt/database
-	# @docker exec -it ${BUILD_ENV} chown -R cacheusr:cacheusr /home/repos
+else ifeq ($(BUILD_ENV), iris)
+	@docker exec -it -u 0 ${BUILD_ENV} chown -R irisowner:irisowner /opt/database
+endif
 
 .Phony: terminal
 terminal:
@@ -27,10 +30,13 @@ terminal:
 
 .Phony: install
 install:
-ifeq ($(BUILD_ENV),ensemble)
 	@docker cp ${BUILD_ENV}/Installer.cls ${BUILD_ENV}:/tmp/Installer.cls
-	@echo 'Do ##Class(%SYSTEM.OBJ).Load("/tmp/Installer.cls", "cuk")  H' | docker exec -i ${BUILD_ENV} csession '${BUILD_ENV}' -U %SYS > import.txt
-	@echo 'Do ##Class(${BUILD_ENV}.Installer).setup(.vars, 3)  H' | docker exec -i ${BUILD_ENV} csession '${BUILD_ENV}' -U %SYS >> import.txt
+ifeq ($(BUILD_ENV),ensemble)
+	@echo 'Do ##Class(%SYSTEM.OBJ).Load("/tmp/Installer.cls", "cuk")  H' | docker exec -i ${BUILD_ENV} csession '${BUILD_ENV}' -U %SYS > ensemble.import.txt
+	@echo 'Do ##Class(${BUILD_ENV}.Installer).setup(.vars, 3)  H' | docker exec -i ${BUILD_ENV} csession '${BUILD_ENV}' -U %SYS >> ensemble.import.txt
+else ifeq ($(BUILD_ENV),iris)
+	@echo 'Do ##Class(%SYSTEM.OBJ).Load("/tmp/Installer.cls", "cuk")  H' | docker exec -i ${BUILD_ENV} iris terminal IRIS -U  %SYS > iris.import.txt
+	@echo 'Do ##Class(${BUILD_ENV}.Installer).setup(.vars, 3)  H' | docker exec -i ${BUILD_ENV} iris terminal IRIS -U %SYS >> iris.import.txt
 else
 	@echo ${BUILD_ENV} Not supported
 endif

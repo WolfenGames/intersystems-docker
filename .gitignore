@@ -6,3 +6,4 @@ import.txt
 export.txt
 *.key
 local-storage
+*.import.txt

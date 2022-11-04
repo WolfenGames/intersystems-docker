@@ -19,7 +19,7 @@ XData setup [ XMLNamespace = INSTALLER ]
   <!--Setup names to be created here-->
   <ForEach 
       Index="TargetNameSpace"
-      Values="NAMESHERE">
+      Values="NAMEHERE">
       <!--Code for each iteration of TargetNameSpace-->
       <Namespace Name="${TargetNameSpace}"
       Create="overwrite"
