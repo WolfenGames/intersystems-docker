@@ -1,0 +1,8 @@
+database
+export
+import
+*.tar.gz
+import.txt
+export.txt
+*.key
+local-storage
