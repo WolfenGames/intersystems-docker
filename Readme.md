@@ -41,6 +41,21 @@ PS C:\Users\AwesomeUser> Set-ExecutionPolicy Bypass -Scope Process -Force; [Syst
 ```powershell
 choco install make
 ```
+5. Depending on your licence you may need to limit the cores, The following steps are for WSL2, in which case you need to edit/create the following file `.wslconfig`
+```Powershell
+cd ~
+code .wslconfig
+```
+Inside vscode, make the file look as follows
+```text
+[wsl2]
+processors=8
+```
+Save and then restart WSL
+```powershell
+wsl --shutdown
+```
+6. If you are using Hyper-V then you can limit cores directly inside Docker desktop.
 
 ## How to use?
 
