@@ -7,3 +7,5 @@ export.txt
 *.key
 local-storage
 *.import.txt
+iris/Installer.cls
+ensemble/Installer.cls

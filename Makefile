@@ -16,15 +16,15 @@ BUILD_ENV ?=
 
 .PHONY: OS
 OS:
-	echo $(SHELL)
+	@echo $(SHELL)
 
 .Phony: build
 build:
-	cd ${BUILD_ENV} && docker build -t ${BUILD_ENV}-dxc:latest .
+	@cd ${BUILD_ENV} && docker build -t ${BUILD_ENV}-dxc:latest .
 
 .Phony: launch
 launch:
-	docker-compose up -d
+	@docker-compose up -d
 
 .Phony: fixperms
 fixperms:
@@ -34,23 +34,44 @@ else ifeq ($(BUILD_ENV), iris)
 	@docker exec -it -u 0 ${BUILD_ENV} chown -R irisowner:irisowner /opt/database
 endif
 
-.Phony: terminal
-terminal:
+.Phony: iterminal
+iterminal:
 ifeq ($(BUILD_ENV),ensemble)
 	@docker exec -it ${BUILD_ENV} csession ${BUILD_ENV} -U USER
 else
 	@docker exec -i ${BUILD_ENV} iris terminal IRIS -U USER
 endif
 
+.Phony: terminal
+terminal:
+ifeq ($(BUILD_ENV),ensemble)
+	@docker exec -it ${BUILD_ENV} bash
+else
+	@docker exec -it -u 0 ${BUILD_ENV} bash
+endif
+
 .Phony: install
 install:
-	docker cp ${BUILD_ENV}/Installer.cls ${BUILD_ENV}:/tmp/Installer.cls
+	@docker cp ${BUILD_ENV}/Installer.cls ${BUILD_ENV}:/tmp/Installer.cls
 ifeq ($(BUILD_ENV),ensemble)
-	echo Do ##Class(%%SYSTEM.OBJ).Load("/tmp/Installer.cls", "cuk")  H | docker exec -i ${BUILD_ENV} csession ${BUILD_ENV} -U %%SYS
-	echo Do ##Class(${BUILD_ENV}.Installer).setup(.vars, 3)  H | docker exec -i ${BUILD_ENV} csession ${BUILD_ENV} -U %%SYS
+	@echo Do ##Class(%%SYSTEM.OBJ).Load("/tmp/Installer.cls", "cuk")  H | docker exec -i ${BUILD_ENV} csession ${BUILD_ENV} -U %%SYS
+	@echo Do ##Class(${BUILD_ENV}.Installer).setup(.vars, 3)  H | docker exec -i ${BUILD_ENV} csession ${BUILD_ENV} -U %%SYS
 else ifeq ($(BUILD_ENV),iris)
-	echo Do ##Class(%%SYSTEM.OBJ).Load("/tmp/Installer.cls", "cuk")  H | docker exec -i ${BUILD_ENV} iris terminal IRIS -U %%SYS
-	echo Do ##Class(${BUILD_ENV}.Installer).setup(.vars, 3)  H | docker exec -i ${BUILD_ENV} iris terminal IRIS -U %%SYS
+	@echo Do ##Class(%%SYSTEM.OBJ).Load("/tmp/Installer.cls", "cuk")  H | docker exec -i ${BUILD_ENV} iris terminal IRIS -U %%SYS
+	@echo Do ##Class(${BUILD_ENV}.Installer).setup(.vars, 3)  H | docker exec -i ${BUILD_ENV} iris terminal IRIS -U %%SYS
 else
-	echo ${BUILD_ENV} Not supported
+	@echo ${BUILD_ENV} Not supported
+endif
+
+.Phony: fixgit
+fixgit: DOCKERCMD ?= ""
+fixgit:
+ifeq ($(BUILD_ENV),ensemble)
+	@echo "No need currently as CENTOS8 installs 2.2x"
+else ifeq ($(BUILD_ENV),iris)
+	@docker exec -t -u 0 ${BUILD_ENV} apt update -y
+	@docker exec -t -u 0 ${BUILD_ENV} apt install -y git
+	@docker exec -t -u 0 ${BUILD_ENV} git config --global --add safe.directory '*'
+else
+	@echo "Sorry bill, not today"
 endif
