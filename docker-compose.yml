@@ -7,24 +7,35 @@ services:
       - 1972:1972
       - 57772:57772
     volumes:
-      - ./local-storage/ensemble:/home/repos:z
+      - repolocation:/home/repos
       - ./import/ensemble:/home/import:z
       - ./export/ensemble:/home/export:z
       - ./database/ensemble:/opt/database:z
+      - ensembledata:/opt/ensemble/
+
   my-iris:
     container_name: iris
     image: containers.intersystems.com/intersystems/iris:2022.1.0.209.0
+    environment:
+      ISC_DATA_DIRECTORY: /opt/external/dur
     ports:
       - 1973:1972
       - 57773:52773
     command: --check-caps false --key /home/key/iris.key
     volumes:
-      - ./local-storage/iris:/home/repos:z
+      - repolocation:/home/repos
       - ./import/iris:/home/import:z
       - ./export/iris:/home/export:z
       - ./iris/iris.key:/home/key/iris.key:z
-      - ./database/iris:/opt/database:z
-      - irisdata:/usr/irissys/mgr/
+      - ./database/iris:/opt/database
+      - irisdata:/opt/external
 
 volumes:
   irisdata:
+  ensembledata:
+  repolocation:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ${REPOLOCATION}
