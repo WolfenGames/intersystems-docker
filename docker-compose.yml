@@ -1,20 +1,33 @@
 version: "3.6"
+
+networks:
+  web:
+    external: true
+  internal:
+    external: false
+    driver: bridge
+
 services:
-  ensemble:
-    container_name: ensemble
-    image: ensemble-dxc:latest
-    ports:
-      - 1972:1972
-      - 57772:57772
-    volumes:
-      - repolocation:/home/repos
-      - ./import/ensemble:/home/import:z
-      - ./export/ensemble:/home/export:z
-      - ./database/ensemble:/opt/database:z
-      - ensembledata:/opt/ensemble/
+  # ensemble:
+  #   container_name: ensemble
+  #   image: ensemble-dxc:latest
+  #   hostname: ens.local.com
+  #   ports:
+  #     - 1972:1972
+  #     - 57772:57772
+  #   volumes:
+  #     - repolocation:/home/repos
+  #     - ./import/ensemble:/home/import:z
+  #     - ./export/ensemble:/home/export:z
+  #     - ./database/ensemble:/opt/database:z
+  #     - ensembledata:/opt/ensemble/mgr
+  #   networks:
+  #     - web
+  #     - internal
 
   my-iris:
     container_name: iris
+    hostname: iris.local.com
     image: containers.intersystems.com/intersystems/iris:2022.1.0.209.0
     environment:
       ISC_DATA_DIRECTORY: /opt/external/dur
@@ -23,19 +36,46 @@ services:
       - 57773:52773
     command: --check-caps false --key /home/key/iris.key
     volumes:
-      - repolocation:/home/repos
+      - repolocation:/opt/repos
+      - ../../TiCSData:/opt/TiCSData
       - ./import/iris:/home/import:z
       - ./export/iris:/home/export:z
       - ./iris/iris.key:/home/key/iris.key:z
       - ./database/iris:/opt/database
-      - irisdata:/opt/external
+      - ./irisdata:/opt/external:z
+    networks:
+      web:
+        ipv4_address: 172.20.0.3
+      internal:
+    restart: always 
+
+  my-fhir-iris:
+    container_name: fhir-iris
+    hostname: fhir.local.com
+    image: containers.intersystems.com/intersystems/iris:2022.1.0.209.0
+    environment:
+      ISC_DATA_DIRECTORY: /opt/external/dur
+    ports:
+      - 1974:1972
+      - 56773:52773
+    command: --check-caps false --key /home/key/iris.key
+    volumes:
+      - repolocation:/opt/repos
+      - ./iris/iris.key:/home/key/iris.key:z
+      - ./database/fhir:/opt/database
+      - ./fhirdata:/opt/external:z
+    networks:
+      web:
+        ipv4_address: 172.20.0.4
+      internal:
+    restart: always
+
 
 volumes:
-  irisdata:
-  ensembledata:
+  # irisdata:
   repolocation:
     driver: local
     driver_opts:
       o: bind
       type: none
-      device: ${REPOLOCATION}
+      device: ../

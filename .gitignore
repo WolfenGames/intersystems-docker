@@ -9,3 +9,6 @@ local-storage
 *.import.txt
 iris/Installer.cls
 ensemble/Installer.cls
+irisdata
+fhirdata
+.vscode

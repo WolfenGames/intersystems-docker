@@ -12,21 +12,21 @@ endif
 MAKEFLAGS += --warn-undefined-variables
 MAKEFLAGS += --no-builtin-rules
 
-BUILD_ENV ?=
+BUILD_ENV ?= iris
 
 .PHONY: OS
 OS:
 	@echo $(SHELL)
 
-.Phony: build
+.PHONY: build
 build:
 	@cd ${BUILD_ENV} && docker build -t ${BUILD_ENV}-dxc:latest .
 
-.Phony: launch
+.PHONY: launch
 launch:
 	@docker-compose up -d
 
-.Phony: fixperms
+.PHONY: fixperms
 fixperms:
 ifeq ($(BUILD_ENV), ensemble)
 	@docker exec -it ${BUILD_ENV} chown -R cacheusr:cacheusr /opt/database
@@ -34,15 +34,15 @@ else ifeq ($(BUILD_ENV), iris)
 	@docker exec -it -u 0 ${BUILD_ENV} chown -R irisowner:irisowner /opt/database
 endif
 
-.Phony: iterminal
+.PHONY: iterminal
 iterminal:
 ifeq ($(BUILD_ENV),ensemble)
 	@docker exec -it ${BUILD_ENV} csession ${BUILD_ENV} -U USER
 else
-	@docker exec -i ${BUILD_ENV} iris terminal IRIS -U USER
+	@docker exec -it ${BUILD_ENV} iris terminal IRIS -U USER
 endif
 
-.Phony: terminal
+.PHONY: terminal
 terminal:
 ifeq ($(BUILD_ENV),ensemble)
 	@docker exec -it ${BUILD_ENV} bash
@@ -50,7 +50,7 @@ else
 	@docker exec -it -u 0 ${BUILD_ENV} bash
 endif
 
-.Phony: install
+.PHONY: install
 install:
 	@docker cp ${BUILD_ENV}/Installer.cls ${BUILD_ENV}:/tmp/Installer.cls
 ifeq ($(BUILD_ENV),ensemble)
@@ -63,15 +63,28 @@ else
 	@echo ${BUILD_ENV} Not supported
 endif
 
-.Phony: fixgit
+.PHONY: fixgit
 fixgit: DOCKERCMD ?= ""
 fixgit:
 ifeq ($(BUILD_ENV),ensemble)
-	@echo "No need currently as CENTOS8 installs 2.2x"
+	@docker exec -t -u 0 ${BUILD_ENV} git config --global core.autocrlf true
+	@docker exec -t -u 0 ${BUILD_ENV} git config --global --add safe.directory *
+	@docker exec -t ${BUILD_ENV} git config --global core.autocrlf true
+	@docker exec -t ${BUILD_ENV} git config --global --add safe.directory *
 else ifeq ($(BUILD_ENV),iris)
 	@docker exec -t -u 0 ${BUILD_ENV} apt update -y
 	@docker exec -t -u 0 ${BUILD_ENV} apt install -y git
-	@docker exec -t -u 0 ${BUILD_ENV} git config --global --add safe.directory '*'
+	@docker exec -t -u 0 ${BUILD_ENV} git config --global --add safe.directory *
+	@docker exec -t -u 0 ${BUILD_ENV} git config --global core.autocrlf true
+	@docker exec -t ${BUILD_ENV} git config --global core.autocrlf true
+	@docker exec -t ${BUILD_ENV} git config --global --add safe.directory *
+else ifeq ($(BUILD_ENV),fhir-iris)
+	@docker exec -t -u 0 ${BUILD_ENV} apt update -y
+	@docker exec -t -u 0 ${BUILD_ENV} apt install -y git
+	@docker exec -t -u 0 ${BUILD_ENV} git config --global --add safe.directory *
+	@docker exec -t -u 0 ${BUILD_ENV} git config --global core.autocrlf true
+	@docker exec -t ${BUILD_ENV} git config --global core.autocrlf true
+	@docker exec -t ${BUILD_ENV} git config --global --add safe.directory *
 else
 	@echo "Sorry bill, not today"
 endif
