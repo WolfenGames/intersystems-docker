@@ -53,10 +53,7 @@ endif
 .PHONY: install
 install:
 	@docker cp ${BUILD_ENV}/Installer.cls ${BUILD_ENV}:/tmp/Installer.cls
-ifeq ($(BUILD_ENV),ensemble)
-	@echo Do ##Class(%%SYSTEM.OBJ).Load("/tmp/Installer.cls", "cuk")  H | docker exec -i ${BUILD_ENV} csession ${BUILD_ENV} -U %%SYS
-	@echo Do ##Class(${BUILD_ENV}.Installer).setup(.vars, 3)  H | docker exec -i ${BUILD_ENV} csession ${BUILD_ENV} -U %%SYS
-else ifeq ($(BUILD_ENV),iris)
+ifeq ($(BUILD_ENV),iris)
 	@echo Do ##Class(%%SYSTEM.OBJ).Load("/tmp/Installer.cls", "cuk")  H | docker exec -i ${BUILD_ENV} iris terminal IRIS -U %%SYS
 	@echo Do ##Class(${BUILD_ENV}.Installer).setup(.vars, 3)  H | docker exec -i ${BUILD_ENV} iris terminal IRIS -U %%SYS
 else
@@ -66,19 +63,7 @@ endif
 .PHONY: fixgit
 fixgit: DOCKERCMD ?= ""
 fixgit:
-ifeq ($(BUILD_ENV),ensemble)
-	@docker exec -t -u 0 ${BUILD_ENV} git config --global core.autocrlf true
-	@docker exec -t -u 0 ${BUILD_ENV} git config --global --add safe.directory *
-	@docker exec -t ${BUILD_ENV} git config --global core.autocrlf true
-	@docker exec -t ${BUILD_ENV} git config --global --add safe.directory *
-else ifeq ($(BUILD_ENV),iris)
-	@docker exec -t -u 0 ${BUILD_ENV} apt update -y
-	@docker exec -t -u 0 ${BUILD_ENV} apt install -y git
-	@docker exec -t -u 0 ${BUILD_ENV} git config --global --add safe.directory *
-	@docker exec -t -u 0 ${BUILD_ENV} git config --global core.autocrlf true
-	@docker exec -t ${BUILD_ENV} git config --global core.autocrlf true
-	@docker exec -t ${BUILD_ENV} git config --global --add safe.directory *
-else ifeq ($(BUILD_ENV),fhir-iris)
+ifeq ($(BUILD_ENV),iris)
 	@docker exec -t -u 0 ${BUILD_ENV} apt update -y
 	@docker exec -t -u 0 ${BUILD_ENV} apt install -y git
 	@docker exec -t -u 0 ${BUILD_ENV} git config --global --add safe.directory *
